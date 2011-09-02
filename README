@@ -4,6 +4,6 @@ RubyでSTG作ってみる
 
 目標：言語内DSL等を使用して簡潔にSTGのステージを記述すること
 
-Ruby1.9.2+MyGame+DxRuby
+Ruby1.9.2+DxRuby
 
 弾素材 kshot

@@ -5,40 +5,37 @@ require './stgbasemod'
 require 'dxrubyex'
 
 class Array
-    include ArrayExtension
+  include ArrayExtension
 end
 
 #STGObjの登録、更新、描画、削除を担当するクラス
-class STGObjManager
+class STGObjManager<GameNode
   MAX_OBJECT=1000
-  def initialize
-    @objlist=Array.new
-  end
   #弾の登録
-  def settoken(obj)
+  def add_child(obj)
     #弾数の上限はここで管理してる
     #return if @objlist.length>MAX_OBJECT&&obj.type==:enemybullet
-    @objlist<<obj
+    childlist<<obj
   end
   #弾の更新,削除
-  def update
-    @objlist.hs_delete_if(:__delete)
-    @objlist.hs_each(:update)
+  def __update
+    childlist.hs_delete_if(:__delete)
+    childlist.hs_each(:update)
   end
   #描画
-  def draw
-    @objlist.hs_each(:draw)
-#    #デバッグ用
-#    @fnt = Font.new("Objcount:"+@objlist.length.to_s)
-#    @fnt2 = Font.new("FPS:"+real_fps().to_s)
-#    @fnt2.y=12
-#    @fnt.render
-#    @fnt2.render
+  def __draw
+    childlist.hs_each(:draw)
+    #    #デバッグ用
+    #    @fnt = Font.new("Objcount:"+@objlist.length.to_s)
+    #    @fnt2 = Font.new("FPS:"+real_fps().to_s)
+    #    @fnt2.y=12
+    #    @fnt.render
+    #    @fnt2.render
   end
   #当たり判定　当たったときdのtypeを持つSTGObjのhitメソッドを呼び出す
   def hit_check(o,d)
-    @o=@objlist.select{|i| i.type==o }.map{|i| i.collision }
-    @d=@objlist.select{|i| i.type==d }.map{|i| i.collision }
+    @o=childlist.select{|i| i.type==o }.map{|i| i.collision }
+    @d=childlist.select{|i| i.type==d }.map{|i| i.collision }
     Collision.check(@o,@d)
     #@fnt3 = Font.new(@o.length.to_s+"と"+@d.length.to_s)
     #@fnt3.y=24
@@ -47,7 +44,7 @@ class STGObjManager
   #今のままだとupdate中にsendされるため何が先に実行されるか分からない
   #改善予定?
   def send(tag,&proc)
-    @objlist.select{|x|x.type==tag}.each{|i|
+    childlist.select{|x|x.type==tag}.each{|i|
       proc.call(i)
     }
   end
@@ -57,35 +54,15 @@ end
 class STGObj<GameToken
   attr_accessor :x, :y, :dx, :dy,:type,:collision,:image
   include BaseAct
-  
-  def self.init
-    STGObj.setmaneger(STGObjManager.new)
-  end
-  
-  def self.setmaneger(mng)
-    @@stgobjmng=mng
-  end
-  
-  def self.maneger
-    @@stgobjmng
-  end
-  
-  def self.setcommondata(x)
-    @@commondata=x
-  end
-  
-  def self.hit_check(shooter,hitted)
-    maneger.hit_check(shooter,hitted)
-  end
-  
-  def self.send(type,&proc)
-    maneger.send(type,&proc)
+
+  def self.setparent(parent)
+    @@parent=parent
   end
   
   def initialize(*arg,&proc)
     super
-    #@x=@y=0
     @w=@h=@dx=@dy=@angle=0.0
+    @@parent<<self
     init(*arg,&proc)
   end
   
@@ -126,7 +103,7 @@ class STGObj<GameToken
   end
   
   def send(tag,&proc)
-    @@mng.send(tag,&proc)
+    @@parent.send(tag,&proc)
   end
   
   def __delete
@@ -163,7 +140,6 @@ class Player < STGObj
       @dx=@speed*Input.x
       @dy=@speed*Input.y
     end
-    @@commondata.playerpos=x,y
   end
   
   def hit(o)
@@ -199,10 +175,5 @@ class ShootObj<STGObj
     i.times do
       Fiber.yield
     end
-  end
-  
-  def aim
-    px,py=@@commondata.playerpos
-    Math.atan2(py-@y,px-@x)/Math::PI*180
   end
 end

@@ -15,6 +15,11 @@ class Stage1<TohoStage #ステージのルーチンを記述する場所
         angle += span
       }
     end
+  def aim
+    #px,py=@@commondata.playerpos
+    #Math.atan2(py-@y,px-@x)/Math::PI*180
+    90
+  end
   end
   
   use Func

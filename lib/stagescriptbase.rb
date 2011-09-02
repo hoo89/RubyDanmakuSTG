@@ -38,19 +38,19 @@ class TohoStage<Stage::Base
   
   Player=KariPlayer
   
-  def initialize(commondata=nil)
-    STGObj.init
-    if commondata then
-      STGObj.setcommondata(commondata)
-    else
-      STGObj.setcommondata(CommonData.new)
-    end
+  def initialize
+    super
+#    if commondata then
+#      STGObj.setcommondata(commondata)
+#    else
+#      STGObj.setcommondata(CommonData.new)
+#    end
     TohoStage.use BaseBulletmod
     
   end
   
   def update
     super
-    STGObj.hit_check(:enemybullet,:player)
+    @stgobjlayer.hit_check(:enemybullet,:player)
   end
 end

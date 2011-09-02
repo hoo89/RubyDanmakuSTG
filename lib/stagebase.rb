@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 require './stgobjects'
-require './stgcommondata'
 
-class StageMainTask
+class StageMainTask<GameToken
   def initialize
+    super
     @maintasks=[]
     @maintasklist=Hash.new
     @tasks=[]
@@ -53,23 +53,15 @@ class StageMainTask
 end
 
 class Stage #ステージのルーチンを記述する場所
-  class Base
+  class Base<GameNode
     @@tasklist=Hash.new
-    @@maintask=StageMainTask.new
+    @@stagetask=StageMainTask.new
+    
     def initialize
-      STGObj.init
-      STGObj.setcommondata(commondata=CommonData.new)
-      #commondataに自身をオブザーバとして登録
-      #イベントを観測できるようにする?
-    end
-    
-    def update
-      @@maintask.update
-      STGObj.update
-    end
-    
-    def render
-      STGObj.draw
+      super
+      self<<@stagetask=@@stagetask.clone
+      self<<@stgobjlayer=STGObjManager.new
+      STGObj.setparent(@stgobjlayer)
     end
     
     def quit
@@ -84,14 +76,14 @@ class Stage #ステージのルーチンを記述する場所
     end
 
     def self.frame(time,&proc)
-      @@maintask.settimetask(time,&proc)
+      @@stagetask.settimetask(time,&proc)
     end
     
     def self.run(name=nil,&proc)
       unless proc.nil? then
-        @@maintask.settask(&proc)
+        @@stagetask.settask(&proc)
       else
-        @@maintask.settask(&@@tasklist[name]) 
+        @@stagetask.settask(&@@tasklist[name]) 
       end
     end
  
