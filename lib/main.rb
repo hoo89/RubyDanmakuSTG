@@ -9,4 +9,4 @@ Window.scale=1
 
 CENTER_X=STGSCREEN_W/2
 
-Director.run(Stage1.new)
+Director.run(TestStage2.new)

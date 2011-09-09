@@ -54,19 +54,43 @@ end
 
 class Stage #ステージのルーチンを記述する場所
   class Base<GameNode
-    @@tasklist=Hash.new
-    @@stagetask=StageMainTask.new
-    
-    def initialize
-      super
-      self<<@stagetask=@@stagetask.clone
-      self<<@stgobjlayer=STGObjManager.new
-      STGObj.setparent(@stgobjlayer)
-    end
-    
-    def quit
-    end
 
+    def self.tasklist
+      @tasklist
+    end
+    
+    def self.stagetask
+      @stagetask
+    end
+    
+    def self.frame(time,&proc)
+      unless @stagetask then
+        @stagetask=StageMainTask.new
+      end
+      @stagetask.settimetask(time,&proc)
+    end
+    
+    def self.run(name=nil,&proc)
+      unless proc.nil? then
+        @stagetask.settask(&proc)
+      else
+        @stagetask.settask(&@tasklist[name]) 
+      end
+    end
+ 
+    def self.settask(name,&proc)
+      unless @tasklist then
+        @tasklist=Hash.new
+      end
+      @tasklist[name]=proc
+    end
+    
+    def self.wait(t)
+      t.times do
+        Fiber.yield
+      end
+    end
+    
     def self.use(func_module)
       eval("
       class STGObj
@@ -75,26 +99,16 @@ class Stage #ステージのルーチンを記述する場所
         ",TOPLEVEL_BINDING)
     end
 
-    def self.frame(time,&proc)
-      @@stagetask.settimetask(time,&proc)
+    
+    def initialize
+      super
+      self<<@stagetask=self.class.stagetask.clone
+      self<<@stgobjlayer=STGObjManager.new
+      STGObj.setparent(@stgobjlayer)
     end
     
-    def self.run(name=nil,&proc)
-      unless proc.nil? then
-        @@stagetask.settask(&proc)
-      else
-        @@stagetask.settask(&@@tasklist[name]) 
-      end
-    end
- 
-    def self.settask(name,&proc)
-      @@tasklist[name]=proc
+    def quit
     end
     
-    def self.wait(t)
-      t.times do
-        Fiber.yield
-      end
-    end
   end
 end

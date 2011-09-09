@@ -1,26 +1,27 @@
 require './stagescriptbase'
 load './stgimageload.rb'
-class Stage1<TohoStage #ステージのルーチンを記述する場所
-  module Func
-    def fire(spd,ang,image=WHITEBUL)
-      Bullet.new.setpos(@x,@y).setspeed(spd,ang).setimage(image)
-    end
-    def fireobj(&proc)
-      ShootObj.new(&proc).setpos @x,@y
-    end
-    def nway(dir,way,span,image=WHITEBUL)
-      angle = dir - (way - 1) / 2 * span;
-      way.times {
-        fire(3,angle,image)
-        angle += span
-      }
-    end
+
+module Func
+  def fire(spd,ang,image=WHITEBUL)
+    Bullet.new.setpos(@x,@y).setspeed(spd,ang).setimage(image)
+  end
+  def fireobj(&proc)
+    ShootObj.new(&proc).setpos @x,@y
+  end
+  def nway(dir,way,span,image=WHITEBUL)
+    angle = dir - (way - 1) / 2 * span;
+    way.times {
+      fire(3,angle,image)
+      angle += span
+    }
+  end
   def aim
-    #px,py=@@commondata.playerpos
-    #Math.atan2(py-@y,px-@x)/Math::PI*180
-    90
+    px,py=@parent.playerpos
+    Math.atan2(py-@y,px-@x)/Math::PI*180
   end
-  end
+end
+  
+class Stage1<TohoStage #ステージのルーチンを記述する場所
   
   use Func
 
@@ -48,4 +49,28 @@ class Stage1<TohoStage #ステージのルーチンを記述する場所
     end
   end
 
+end
+
+class TestStage2<TohoStage
+  use Func
+
+  frame 0 do
+    Player.new.setpos(200,400)
+    loop do
+      Enemy.new{
+        @x=0
+        @y=100
+        @image=WHITEBUL
+        
+        Fiber.yield
+        
+        loop do
+          setspeed(3,aim)
+          wait 60
+        end
+      }
+      wait 300
+    end
+    
+  end
 end

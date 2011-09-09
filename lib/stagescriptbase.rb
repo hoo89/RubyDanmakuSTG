@@ -12,8 +12,8 @@ end
 
 class STGObj<GameToken
   def update #もとの基底オブジェクトに機能追加するのにもっといい方法ないものか
-     mainloop
-     move
+    mainloop
+    move
     @collision.set(x,y) if @collision
   end
 end
@@ -34,19 +34,30 @@ class TohoStage<Stage::Base
     def hit(s)
       #p "hitted #{s}"
     end
+    def update
+      super
+      parent.playerpos=[self.x,self.y]
+    end
   end
   
   Player=KariPlayer
   
   def initialize
     super
-#    if commondata then
-#      STGObj.setcommondata(commondata)
-#    else
-#      STGObj.setcommondata(CommonData.new)
-#    end
+    #    if commondata then
+    #      STGObj.setcommondata(commondata)
+    #    else
+    #      STGObj.setcommondata(CommonData.new)
+    #    end
     TohoStage.use BaseBulletmod
     
+    def @stgobjlayer.playerpos=(pos)
+      @ppos=pos
+    end
+    
+    def @stgobjlayer.playerpos
+      @ppos||[0,0]
+    end
   end
   
   def update
